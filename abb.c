@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L 
 #include "abb.h"
 #include <stdlib.h>
 #include <string.h>
@@ -17,12 +18,22 @@ struct abb {
     size_t cantidad;
 };
 
+nodo_t** busqueda_ptr(nodo_t** ptr_nodo,abb_comparar_clave_t comparar,const char* clave){
+    if (!(*ptr_nodo)) return ptr_nodo;
+    
+    int comparacion = comparar((*ptr_nodo)->clave,clave); 
+    if (!comparacion) return ptr_nodo;    
+    
+    if (comparacion < 0) return busqueda_ptr(&((*ptr_nodo)->izq),comparar,clave);
+    else return busqueda_ptr(&((*ptr_nodo)->der),comparar,clave);
+}
+
 nodo_t* nodo_crear(const char *clave, void *dato){
     nodo_t* nodo = malloc(sizeof(nodo_t));
     if(!nodo) return NULL;
     nodo->izq = NULL;
     nodo->der = NULL;
-    strcpy(nodo->clave,clave);
+    nodo->clave = strdup(clave);
     nodo->dato = dato;
     return nodo;
 }
@@ -44,13 +55,28 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato){
     return arbol;
 }
 
-
-nodo_t** busqueda_ptr(nodo_t** ptr_nodo,abb_comparar_clave_t comparar,char* clave){
-    if (!(*ptr_nodo)) return ptr_nodo;
-    
-    int comparacion = comparar((*ptr_nodo)->clave,clave); 
-    if (!comparacion) return ptr_nodo;    
-    
-    if (comparacion < 0) return busqueda_ptr(&((*ptr_nodo)->izq),comparar,clave);
-    else return busqueda_ptr(&((*ptr_nodo)->der),comparar,clave);
+bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
+    if (!arbol) return false;
+    nodo_t** ptr_aux = busqueda_ptr(&(arbol->raiz),arbol->comparar_clave,clave);
+    if(!(*ptr_aux)){
+        *ptr_aux = nodo_crear(clave ,dato);
+        arbol->cantidad += 1;
+    }
+    else{
+        if(arbol->destruir_dato) arbol->destruir_dato((*ptr_aux)->dato);    
+        (*ptr_aux)->dato = dato; 
+    } 
+    return true;
 }
+void *abb_obtener(const abb_t *arbol, const char *clave){
+    if(!arbol) return NULL;
+    nodo_t* raiz_aux = arbol->raiz; 
+    nodo_t** ptr_aux = busqueda_ptr(&(raiz_aux) ,arbol->comparar_clave ,clave); 
+    return (*ptr_aux)? (*ptr_aux)->dato : NULL;
+}
+
+size_t abb_cantidad(abb_t* arbol){
+    if(!arbol) return 0;
+    return arbol->cantidad;
+}
+
