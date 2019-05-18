@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 typedef struct abb abb_t;
+typedef struct abb_iter abb_iter_t;
 
 typedef int (*abb_comparar_clave_t) (const char *, const char *);
 typedef void (*abb_destruir_dato_t) (void *);
@@ -28,5 +29,6 @@ size_t abb_cantidad(abb_t *arbol);
 
 void abb_destruir(abb_t *arbol);
 
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
 #endif // _ABB_H
