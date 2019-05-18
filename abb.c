@@ -37,19 +37,20 @@ nodo_t** busqueda_ptr( nodo_t** ptr_nodo, abb_comparar_clave_t comparar, const c
 void* nodo_destruir( nodo_t** nodo_borrar ){
     free( (*nodo_borrar)->clave );
     void* dato = (*nodo_borrar)->dato;
+    free(*nodo_borrar);
     *nodo_borrar = NULL;
     return dato;
 }
 
-void destruir_hojas( nodo_t* raiz , abb_destruir_dato_t destruir_dato){
-    if( !raiz ) return;
-    if( raiz->izq ) destruir_hojas( raiz->izq,destruir_dato );
-    if( raiz->der ) destruir_hojas( raiz->izq,destruir_dato );
-    else{
-        free( raiz->clave ); 
-        if( destruir_dato ) destruir_dato( raiz->dato ); 
-    }
-    
+
+void destruir_hojas(nodo_t* raiz ,abb_destruir_dato_t destruir_dato){
+    if(!raiz) return;
+    if(raiz->izq) destruir_hojas(raiz->izq,destruir_dato);
+    if(raiz->der) destruir_hojas(raiz->der,destruir_dato);
+    free(raiz->clave);                         //---|   
+    if(destruir_dato) destruir_dato(raiz->dato); //-|-> modoficar
+    free(raiz);                                  //-|
+
 }
 
 nodo_t* nodo_crear( const char *clave, void *dato ){
@@ -69,6 +70,31 @@ void swap( nodo_t* nodo_a , nodo_t *nodo_b ){
     nodo_b->dato = nodo_a->dato;
     nodo_a->clave = clave_aux;
     nodo_a->dato = dato_aux;
+}
+
+bool guardar_cola(const char* clave ,void* dato ,void* extra){ 
+    dato = dato;
+    cola_encolar((cola_t*)extra ,strdup(clave));
+    return true;
+}
+
+nodo_t** recorrido_der_ultimo(nodo_t** nodo_der){
+    if(!(*nodo_der)->der) return nodo_der;    
+    return recorrido_der_ultimo(&(*nodo_der)->der);
+}
+
+void* borrar_nodo_con_un_hijo(nodo_t** nodo_borrar){
+    nodo_t* nodo_hijo = ((*nodo_borrar)->izq)? (*nodo_borrar)->izq : (*nodo_borrar)->der;
+    void* dato = nodo_destruir(nodo_borrar);
+    *nodo_borrar = nodo_hijo;
+    return dato;
+}
+
+void* borrar_nodo_con_dos_hijos(nodo_t** nodo_a_borrar){
+    nodo_t** nodo_swap = recorrido_der_ultimo(&(*nodo_a_borrar)->izq);  
+    swap(*nodo_swap,*nodo_a_borrar);
+    if((*nodo_swap)->izq) return borrar_nodo_con_un_hijo(nodo_swap);
+    return nodo_destruir(nodo_swap); 
 }
 
 /*#############################################################################*/
@@ -104,14 +130,18 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 }
 
 bool abb_pertenece(const abb_t *arbol, const char *clave){
-    if( !arbol ) return false;
-    return (abb_obtener(arbol,clave));
+
+    nodo_t* raiz_aux = arbol->raiz; 
+    nodo_t** ptr_aux = busqueda_ptr(&(raiz_aux) ,arbol->comparar_clave ,clave); 
+    return *ptr_aux;
+
 }
 
 size_t abb_cantidad( abb_t* arbol ){
     if( !arbol ) return 0;
     return arbol->cantidad;
 }
+
 
 nodo_t** recorrido_der_ultimo( nodo_t** nodo_der ){
     if( !(*nodo_der)->der ) return nodo_der;    
@@ -145,6 +175,7 @@ void *abb_borrar( abb_t *arbol , const char *clave){
     else{
         dato_a_borrar = borrar_nodo_con_un_hijo(nodo_borrar);
     }
+    arbol->cantidad -= 1;
     return dato_a_borrar;
 }
 
@@ -163,6 +194,7 @@ void abb_in_order( abb_t *arbol, bool visitar(const char *, void *, void *), voi
     recorrido_in_order( arbol->raiz ,visitar ,extra );    
 }
 
+<<<<<<< HEAD
 bool guardar_cola(const char* clave ,void* dato ,void* extra){ 
     dato = dato;
     cola_encolar((cola_t*)extra ,strdup(clave));
@@ -191,6 +223,7 @@ const char *abb_iter_in_ver_actual( const abb_iter_t *iter ){
 bool abb_iter_in_al_final( const abb_iter_t *iter ){
     return ( cola_esta_vacia(iter->cola) );
 }
+
 void abb_iter_in_destruir( abb_iter_t* iter ){
     cola_destruir( iter->cola ,free );
     free(iter);

@@ -57,6 +57,7 @@ void abb_destruir(abb_t *arbol);
 */
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
+<<<<<<< HEAD
 /*
 *pre:el arbol fue creado
 *post: crea el iterador para el abb
@@ -82,5 +83,16 @@ bool abb_iter_in_al_final(const abb_iter_t *iter);
 *post: destruye el abb en su totalidad.
 */
 void abb_iter_in_destruir(abb_iter_t* iter);
+
+
+
+
+
+
+
+
+
+
+
 
 #endif // _ABB_H
