@@ -37,6 +37,7 @@ nodo_t** busqueda_ptr(nodo_t** ptr_nodo,abb_comparar_clave_t comparar,const char
 void* nodo_destruir(nodo_t** nodo_borrar){
     free((*nodo_borrar)->clave);
     void* dato = (*nodo_borrar)->dato;
+    free(*nodo_borrar);
     *nodo_borrar = NULL;
     return dato;
 }
